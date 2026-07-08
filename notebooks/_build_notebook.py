@@ -14,7 +14,7 @@ CELLS = [
 
 This notebook runs the whole pipeline top to bottom:
 
-**data → features → regime detection → optimization → backtest → results**
+**data -> features -> regime detection -> optimization -> backtest -> results**
 
 We detect hidden market regimes (Bull / Bear / Crisis) on Indian markets with a
 Hidden Markov Model, then let the detected regime drive a convex portfolio

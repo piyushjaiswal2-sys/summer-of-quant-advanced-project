@@ -7,9 +7,9 @@ never adapts, it detects hidden market *regimes* with a Hidden Markov Model and
 picks portfolio weights that suit whatever regime we're currently in.
 
 The whole thing is validated **walk-forward** so that nothing in the results
-depends on information the strategy couldn't have had at the time — avoiding
-lookahead bias, which is the single easiest way to build a backtest that looks
-amazing and then loses money live.
+depends on information the strategy couldn't have had at the time. That is how
+you avoid lookahead bias, which is the single easiest way to build a backtest
+that looks amazing and then loses money live.
 
 Markets used are Indian (NSE): **Nifty 50** for equities, **GOLDBEES** for gold,
 **LIQUIDBEES** as the safe/fixed-income leg, and the **India VIX** as a fear
@@ -18,20 +18,20 @@ gauge feature.
 ## What it does, end to end
 
 ```
-data  →  features  →  regime detection (HMM)  →  optimization (CVXPY)  →  walk-forward backtest  →  results
+data  ->  features  ->  regime detection (HMM)  ->  optimization (CVXPY)  ->  walk-forward backtest  ->  results
 ```
 
-1. **Data** — pull daily adjusted prices from Yahoo Finance, clean obvious bad
+1. **Data.** Pull daily adjusted prices from Yahoo Finance, clean obvious bad
    ticks, convert to log returns, align everything on one calendar.
-2. **Features** — momentum and rolling volatility of the equity index at a
+2. **Features.** Momentum and rolling volatility of the equity index at a
    couple of horizons, plus the VIX level.
-3. **Regime detection** — a 3-state Gaussian HMM (`hmmlearn`) infers a
+3. **Regime detection.** A 3-state Gaussian HMM (`hmmlearn`) infers a
    Bull/Bear/Crisis label for each day. States are named automatically by their
-   average volatility (no manual labelling of any day).
-4. **Optimization** — for each regime, solve for portfolio weights with `cvxpy`
+   average volatility, so no day is labelled by hand.
+4. **Optimization.** For each regime, solve for portfolio weights with `cvxpy`
    using a different objective (aggressive in Bull, defensive in Bear, minimum
    variance in Crisis).
-5. **Walk-forward backtest** — re-fit the HMM inside each training window, decode
+5. **Walk-forward backtest.** Re-fit the HMM inside each training window, decode
    regimes causally on the test window, and trade a monthly-rebalanced portfolio
    with transaction costs. Compare against static 60/40 and equal-weight.
 
@@ -40,36 +40,36 @@ data  →  features  →  regime detection (HMM)  →  optimization (CVXPY)  →
 Out-of-sample (walk-forward) performance, net of 10 bps transaction costs, on
 data from 2010 to end-2024:
 
-| Strategy       | Ann. Return | Ann. Vol | Sharpe | Sortino | Max Drawdown | Calmar | Ann. Turnover |
-|----------------|------------:|---------:|-------:|--------:|-------------:|-------:|--------------:|
-| **Dynamic (net)** |      6.1% |     6.5% |   0.94 |    1.23 |   **-13.4%** |   0.45 |          3.89 |
-| Static 60/40   |        9.6% |     9.8% |   0.98 |    1.23 |       -23.7% |   0.41 |          0.29 |
-| Equal weight   |        9.0% |     6.6% |   1.33 |    1.80 |       -15.2% |   0.59 |          0.36 |
+| Strategy | Ann. Return | Ann. Vol | Sharpe | Sortino | Max Drawdown | Calmar | Ann. Turnover |
+|---|--:|--:|--:|--:|--:|--:|--:|
+| **Dynamic (net)** | 6.1% | 6.5% | 0.94 | 1.23 | **-13.4%** | 0.45 | 3.89 |
+| Static 60/40 | 9.6% | 9.8% | 0.98 | 1.23 | -23.7% | 0.41 | 0.29 |
+| Equal weight | 9.0% | 6.6% | 1.33 | 1.80 | -15.2% | 0.59 | 0.36 |
 
 Effect of transaction costs on the dynamic strategy: annual return goes from
-6.5% (gross) to 6.1% (net) — monthly rebalancing keeps turnover low enough that
+6.5% (gross) to 6.1% (net). Monthly rebalancing keeps turnover low enough that
 costs don't dominate.
 
 **How to read this.** The dynamic strategy's headline is **downside
 protection**: its worst drawdown (-13.4%) is far shallower than the 60/40
 portfolio's (-23.7%), and it beats 60/40 on Calmar at a comparable Sharpe and
 much lower volatility. It does that by de-risking into the safe asset when the
-HMM flags a crisis — you can see the shallow dip through the March-2020 COVID
+HMM flags a crisis, and you can see the shallow dip through the March-2020 COVID
 crash in `outputs/07_equity_curves.png`. It does **not** beat the equal-weight
 portfolio here, largely because gold had an exceptional decade in India and a
-constant 1/3 gold allocation was hard to beat; I've reported that honestly
+constant 1/3 gold allocation was hard to beat. I've reported that honestly
 rather than tune parameters until the strategy "wins". (Numbers come from live
 Yahoo Finance data over a fixed date range, so re-running reproduces them.)
 
 The HMM's transition matrix (rows sum to 1) confirms regimes are sticky, which
-is exactly what we'd expect — the market rarely jumps straight from calm to
+is exactly what we'd expect, since the market rarely jumps straight from calm to
 crisis in a single day:
 
-|        | Bull | Bear | Crisis |
-|--------|-----:|-----:|-------:|
-| Bull   | 0.99 | 0.01 |   0.00 |
-| Bear   | 0.01 | 0.98 |   0.00 |
-| Crisis | 0.00 | 0.02 |   0.98 |
+| | Bull | Bear | Crisis |
+|---|--:|--:|--:|
+| Bull | 0.99 | 0.01 | 0.00 |
+| Bear | 0.01 | 0.98 | 0.00 |
+| Crisis | 0.00 | 0.02 | 0.98 |
 
 ## Key design decisions
 
@@ -79,8 +79,8 @@ calmly rising, steadily falling, and violent high-volatility stress. Two states
 can't separate "falling" from "crashing", and more than three tends to split
 the data into economically meaningless clusters that overfit noise.
 
-**Why these features?** Price level alone tells you nothing about the regime —
-the same index level can be reached by a calm grind up or a violent
+**Why these features?** Price level alone tells you nothing about the regime.
+The same index level can be reached by a calm grind up or a violent
 crash-and-recover. What discriminates regimes is *direction* (momentum) and
 *uncertainty* (volatility), so we feed the HMM momentum and rolling volatility
 at 1-month and 1-quarter horizons plus the India VIX, which is a direct,
@@ -89,21 +89,21 @@ forward-looking measure of expected volatility.
 **Why LIQUIDBEES as the "bond"?** Indian government-bond ETFs on Yahoo Finance
 have short or unreliable histories (implausible daily jumps, stale prices).
 LIQUIDBEES is a liquid debt ETF with a clean 15-year history and behaves as the
-portfolio's safe/cash leg — which is exactly how many Indian investors use it.
+portfolio's safe/cash leg, which is exactly how many Indian investors use it.
 Its returns are steady and its volatility is tiny, making it the natural
 flight-to-safety asset.
 
 **Why mean-variance instead of a literal "maximize Sharpe" in Bull?** Because
 the safe asset is essentially cash: a tiny volatility with a steady positive
 return gives it a huge Sharpe ratio, so a pure Sharpe-maximizer parks almost the
-entire book in cash in *every* regime and never takes any equity risk — which
+entire book in cash in *every* regime and never takes any equity risk, which
 defeats the whole point. Instead each regime uses a mean-variance objective with
 a **regime-specific risk aversion**, which is the same trade-off (return vs
 risk) but lets the strategy actually lean into equities when it's safe to:
 
-- **Bull** — low risk aversion → return-seeking, tilts to equities.
-- **Bear** — high risk aversion → defensive, tilts to gold and the safe asset.
-- **Crisis** — pure minimum variance → capital preservation.
+- **Bull:** low risk aversion, return-seeking, tilts to equities.
+- **Bear:** high risk aversion, defensive, tilts to gold and the safe asset.
+- **Crisis:** pure minimum variance, capital preservation.
 
 Expected returns are estimated **conditional on each regime** (how assets behave
 on the training days the HMM assigns to that regime), which is what makes "Bull"
@@ -113,22 +113,23 @@ invested, and capped at 60% in any single asset so no one asset dominates.
 **Why monthly rebalancing?** The daily HMM signal is noisy and flips fairly
 often. Trading on every flip racks up enormous turnover and lets transaction
 costs quietly destroy returns (a genuine trap the project warns about). Acting
-once a month — a realistic tactical cadence — keeps turnover sane while still
+once a month, a realistic tactical cadence, keeps turnover sane while still
 capturing the regime shifts that matter. You can switch to daily via
 `REBALANCE_FREQUENCY` in `src/config.py` and watch the costs bite.
 
 ## How lookahead bias is avoided
 
 This is the part the project cares about most. At every point in time `t`, every
-number used to make a decision for `t` is computable from data dated `≤ t`:
+number used to make a decision for `t` is computable from data dated on or
+before `t`:
 
-- The HMM is **re-fit inside each walk-forward fold** on training data only —
+- The HMM is **re-fit inside each walk-forward fold** on training data only,
   never once on the full sample and then "predicted" backwards.
 - Feature **z-scoring uses training-window statistics only** (`StandardScaler`
   is `fit` on train, then `transform` applied to test).
 - Test-day regimes are decoded with a **causal forward filter**
-  (`regime.filter_states`), not Viterbi or the smoothing posterior — both of
-  those use the entire sequence, including future days, to label any given day.
+  (`regime.filter_states`), not Viterbi or the smoothing posterior, both of
+  which use the entire sequence (including future days) to label any given day.
 - Expected returns and covariance for the optimizer come from the **training
   window only**.
 - Target weights are **lagged one day** in the backtest, so a position is only
@@ -201,10 +202,10 @@ Results are deterministic given the data:
 - Yahoo Finance serves the same adjusted history for that range.
 
 So a fresh `python main.py` on any machine reproduces the tables above (up to
-any later Yahoo data revisions). Every knob — tickers, feature windows, number
+any later Yahoo data revisions). Every knob (tickers, feature windows, number
 of regimes, risk aversions, transaction cost, rebalance frequency, walk-forward
-window sizes — lives in `src/config.py`, so experiments are one edit away.
+window sizes) lives in `src/config.py`, so experiments are one edit away.
 
 ## Tech stack
 
-Python · NumPy · Pandas · SciPy · Matplotlib · yfinance · hmmlearn · CVXPY
+Python, NumPy, Pandas, SciPy, Matplotlib, yfinance, hmmlearn, CVXPY
