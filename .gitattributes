@@ -1,0 +1,6 @@
+# Normalize line endings so the repo is consistent across Windows/macOS/Linux.
+* text=auto eol=lf
+
+# Treat notebooks and images as-is.
+*.ipynb text eol=lf
+*.png binary
