@@ -1,0 +1,4 @@
+,Ann. Return,Ann. Volatility,Sharpe,Sortino,Max Drawdown,Calmar,Ann. Turnover
+Dynamic (net),0.0607,0.065,0.9396,1.235,-0.1338,0.454,3.8901
+Static 60/40,0.0961,0.0984,0.9822,1.2287,-0.2369,0.4056,0.2911
+Equal weight,0.0898,0.0661,1.3333,1.799,-0.1518,0.5915,0.359

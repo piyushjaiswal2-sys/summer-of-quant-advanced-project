@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# The outputs/ and results/ folders ARE committed so the repository shows the
+# regime charts, equity curves, and performance tables without having to run
+# anything. Delete the line below if you'd rather regenerate them yourself.
+# outputs/
+# results/
