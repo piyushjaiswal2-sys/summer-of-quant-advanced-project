@@ -29,7 +29,7 @@ def _finish(fig, save_path):
 
 
 def plot_asset_returns(prices, returns, save_path=None):
-    """Cumulative growth of each asset - just look at the data first."""
+    """Cumulative growth of each asset. Look at the data before doing anything clever."""
     fig, ax = plt.subplots(2, 1, figsize=(12, 7), sharex=True)
 
     growth = (1 + np.expm1(returns)).cumprod()
@@ -40,7 +40,7 @@ def plot_asset_returns(prices, returns, save_path=None):
     ax[0].legend()
 
     ax[1].plot(returns.index, returns[config.REGIME_ASSET], color="steelblue", lw=0.6)
-    ax[1].set_title(f"Daily log returns - {config.REGIME_ASSET}")
+    ax[1].set_title(f"Daily log returns ({config.REGIME_ASSET})")
     ax[1].set_ylabel("Return")
     _finish(fig, save_path)
 
@@ -50,7 +50,7 @@ def plot_volatility_check(features, save_path=None):
     vol_name = f"vol_{config.VOLATILITY_WINDOWS[0]}"
     fig, ax = plt.subplots(figsize=(12, 4.5))
     ax.plot(features.index, features[vol_name], color="firebrick", lw=1)
-    ax.set_title(f"{vol_name} (annualized) - should spike around 2020 & 2022")
+    ax.set_title(f"{vol_name} (annualized), should spike around 2020 & 2022")
     ax.set_ylabel("Annualized volatility")
     # Shade a couple of well-known stress windows for reference.
     for start, end, label in [("2020-02-01", "2020-05-01", "COVID crash"),

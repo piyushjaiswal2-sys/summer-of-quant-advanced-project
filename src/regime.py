@@ -68,7 +68,7 @@ def label_states_by_volatility(model, vol_column_index):
 
     Each hidden state has a learned mean vector (``model.means_``). We read off
     the volatility feature's mean for every state and sort: lowest average
-    volatility -> Bull, highest -> Crisis. This is fully unsupervised - no day
+    volatility -> Bull, highest -> Crisis. This is fully unsupervised; no day
     is labelled by hand. Returns a dict {state_index: regime_name}.
     """
     state_vol = model.means_[:, vol_column_index]
@@ -87,7 +87,7 @@ def filter_states(model, X_scaled):
     """Causally decode the most likely state at each step (forward filtering).
 
     Unlike ``model.predict`` (Viterbi) and ``model.predict_proba`` (smoothing),
-    which both use the *entire* sequence - including future observations - to
+    which both use the *entire* sequence (including future observations) to
     label any given day, this runs only the forward pass. The state at time t is
     the argmax of the filtered distribution given observations up to and
     including t, never anything after. That is exactly the no-lookahead property

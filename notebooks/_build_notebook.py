@@ -59,7 +59,7 @@ returns.tail()"""),
     ("md", """## 2. Features
 
 We describe the market's state with momentum and volatility of the equity index
-at a couple of horizons, plus the VIX level. These are the *raw* features - all
+at a couple of horizons, plus the VIX level. These are the *raw* features; all
 z-scoring happens later, inside the walk-forward loop, using training data only.
 
 As a sanity check, the volatility feature should spike around known stress
@@ -72,7 +72,7 @@ plot_mod.plot_volatility_check(features)"""),
     ("md", """## 3. Fitting the HMM (full-sample view)
 
 First we fit one HMM on the whole sample just to *look* at the regimes and the
-transition matrix. This is an in-sample picture for intuition only - the honest,
+transition matrix. This is an in-sample picture for intuition only. The honest,
 leak-free evaluation is the walk-forward backtest in Section 4.
 
 The states come out unlabelled (0/1/2); we name them by average volatility:
@@ -100,7 +100,7 @@ pd.DataFrame(ordered_transmat, index=regime_mod.REGIME_NAMES,
              columns=regime_mod.REGIME_NAMES).round(3)"""),
 
     ("md", """The high diagonal of the transition matrix confirms regimes are
-"sticky" - once the market is in a state it tends to stay there, which is
+"sticky": once the market is in a state it tends to stay there, which is
 exactly what we expect. Now overlay the regimes on the Nifty price."""),
 
     ("code", """plot_mod.plot_regime_overlay(
@@ -116,7 +116,7 @@ through time. In every fold we:
 1. compute z-score stats on the **training** features only,
 2. re-fit the HMM on that training window,
 3. decode test-day regimes with a **causal forward filter** (each day uses only
-   data up to that day - no lookahead),
+   data up to that day (no lookahead),
 4. estimate regime-conditional expected returns and a covariance from the
    **training** returns only,
 5. solve one optimal portfolio per regime.
@@ -196,7 +196,7 @@ net_table.round(3)"""),
     ("md", """## 6. Takeaways
 
 - The HMM cleanly separates calm, choppy, and crisis markets with no hand
-  labelling - the Crisis band lines up with the 2020 COVID crash.
+  labelling, and the Crisis band lines up with the 2020 COVID crash.
 - Re-fitting inside each walk-forward fold, causal filtering, and train-only
   scaling mean every regime label depends only on the past.
 - The dynamic strategy's headline result is **downside protection**: its worst
